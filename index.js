@@ -10,6 +10,7 @@ import {Admin_auth,Manager_auth,Employee_auth} from "./middleware/auth.js"
 dotenv.config();
 
 const app = express();
+app.use(cors());
 
 const port = process.env.PORT;
 
@@ -171,7 +172,7 @@ app.delete("/deleteLeads/:id",Admin_auth,async(req,res)=>{
             queries.rating = +queries.rating;
         }
         let filteredMovies = await client.db("userDB").collection("users").find(queries).toArray();
-         
+         console.log("nnn")
         res.send(filteredMovies);
     })
   
