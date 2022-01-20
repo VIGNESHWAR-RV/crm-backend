@@ -63,22 +63,22 @@ app.post("/login",async(req,res)=>{
 
     
       
-    //  if(role==="admin"){
-    //      const token = jwt.sign({id:existingUser._id},process.env.SECRET_ADMIN_KEY);
-    //     return  res.send({"userId":existingUser._id,"role":role,"token":token});
-    //  } 
-    //  if(role==="manager"){
-    //     const token = jwt.sign({id:existingUser._id},process.env.SECRET_MANAGER_KEY);
-    //     return res.send({"userId":existingUser._id,"role":role,"token":token});
-    //  }
-    //  if(role==="employee"){
-    //     const token = jwt.sign({id:existingUser._id},process.env.SECRET_EMPLOYEE_KEY);
-    //     return res.send({"userId":existingUser._id,"role":role,"token":token});
-    //  }
-    //  if(role==="user"){
-    //     const token = jwt.sign({id:existingUser._id},process.env.SECRET_USER_KEY);
-    //     return res.send({"userId":existingUser._id,"role":role,"token":token});
-    //  }
+     if(role==="admin"){
+         const token = jwt.sign({id:existingUser._id},process.env.SECRET_ADMIN_KEY);
+        return  res.send({"userId":existingUser._id,"role":role,"token":token});
+     } 
+     if(role==="manager"){
+        const token = jwt.sign({id:existingUser._id},process.env.SECRET_MANAGER_KEY);
+        return res.send({"userId":existingUser._id,"role":role,"token":token});
+     }
+     if(role==="employee"){
+        const token = jwt.sign({id:existingUser._id},process.env.SECRET_EMPLOYEE_KEY);
+        return res.send({"userId":existingUser._id,"role":role,"token":token});
+     }
+     if(role==="user"){
+        const token = jwt.sign({id:existingUser._id},process.env.SECRET_USER_KEY);
+        return res.send({"userId":existingUser._id,"role":role,"token":token});
+     }
 
 
     return res.status(400).send("user role is not defined");
