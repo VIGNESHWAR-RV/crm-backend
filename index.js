@@ -10,7 +10,6 @@ import {Admin_auth,Manager_auth,Employee_auth} from "./middleware/auth.js"
 dotenv.config();
 
 const app = express();
-app.use(cors());
 
 const port = process.env.PORT;
 
@@ -53,7 +52,8 @@ app.post("/login",async(req,res)=>{
      if(!existingUser){
         return res.status(400).send("invalid credentials")
      }
-    
+     
+     const role = existingUser.role;
      const password = existingUser.password;
      
      const passwordMatch = await bcrypt.compare(login.password,password);
@@ -61,27 +61,27 @@ app.post("/login",async(req,res)=>{
      if(!passwordMatch){
          return res.status(400).send("invalid credentials");}
 
-     const role = existingUser.role;
+    
       
      if(role==="admin"){
          const token = jwt.sign({id:existingUser._id},process.env.SECRET_ADMIN_KEY);
         return  res.send({"userId":existingUser._id,"role":role,"token":token});
-     }
-     
+     } 
      if(role==="manager"){
         const token = jwt.sign({id:existingUser._id},process.env.SECRET_MANAGER_KEY);
         return res.send({"userId":existingUser._id,"role":role,"token":token});
      }
-     
      if(role==="employee"){
         const token = jwt.sign({id:existingUser._id},process.env.SECRET_EMPLOYEE_KEY);
         return res.send({"userId":existingUser._id,"role":role,"token":token});
      }
-
      if(role==="user"){
         const token = jwt.sign({id:existingUser._id},process.env.SECRET_USER_KEY);
         return res.send({"userId":existingUser._id,"role":role,"token":token});
      }
+
+
+    return res.status(400).send("user role is not defined");
 })
      
      // sign-up
