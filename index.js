@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 // import {Auth} from "two-step-auth";
-import {Admin_auth,Manager_auth,Employee_auth} from "./middleware/auth.js"
+import {Admin_auth,Manager_auth,Employee_auth,User_auth} from "./middleware/auth.js"
 
 dotenv.config();
 
@@ -166,7 +166,7 @@ app.delete("/deleteLeads/:id",Admin_auth,async(req,res)=>{
     });
 
       //get all and filtered leads
-    app.get("/leads",Employee_auth,async(req,res)=>{
+    app.get("/leads",User_auth,async(req,res)=>{
         const queries = req.query;
         if(queries.rating){
             queries.rating = +queries.rating;
