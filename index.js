@@ -64,7 +64,7 @@ app.post("/forgotPassword", async (req, res) => {
         }
     });
 
-    const otp_number = Math.floor(Math.random() * 10000000);
+    const otp_number = Math.floor(Math.random() * 1000000);
 
     var mailOptions = {
         from: '"RV`s CRM TEAM" <noreplycrmbyrv@gmail.com>',
