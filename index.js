@@ -40,8 +40,16 @@ app.get("/", (req, res) => {
     res.send("hello, 🌍20000")
 });
 
-app.get("/loginCheck", async (req, res) => {
+app.post("/forgotPassword", async (req, res) => {
     const user_email = req.body.email;
+
+    const existingUser = await client.db("userDB")
+    .collection("employees")
+    .findOne({ email:user_email });
+
+    if(!existingUser){
+        return res.status(400).send("there is no user account such mail buddy");
+    }
 
     const transport = nodemailer.createTransport({
 
@@ -71,9 +79,14 @@ app.get("/loginCheck", async (req, res) => {
             return console.log(error);
         }
         console.log('Message sent: %s', info.messageId);
+        return res.send({message:"frontEnd dude!!!, I sent the mail.Alert him to check the inbox and verify the otp",
+                         otp:otp_number,
+                        })
     });
 
 });
+
+
 //login
 
 app.post("/login", async (req, res) => {
