@@ -58,8 +58,13 @@ app.post("/forgotPassword", async (req, res) => {
     const passwordUpdate = await client.db("users")
                                            .collection("employees")
                                            .updateOne({email:user_email},{$set:{password:password}});
-
+     if(passwordUpdate){
+     console.log("password updated");
      return res.send(passwordUpdate);
+     }
+     console.log("password couldnt update");
+     return res.status(400).send("couldnt update");
+    
     }
 
     const existingUser = await client.db("userDB")
