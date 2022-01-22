@@ -27,22 +27,41 @@ const client = await createConnection();
 app.use(express.json()); //middleWare
 app.use(cors());
 
-//password generation
-async function genPassword(password) {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    return hashedPassword;
-}
+// //password generation
+// async function genPassword(password) {
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash(password, salt);
+//     return hashedPassword;
+// }
 
 
-
+    //home test
 app.get("/", (req, res) => {
     res.send("hello, 🌍20000")
 });
 
+
+ // forgot password
 app.post("/forgotPassword", async (req, res) => {
+    const new_password = req.body.password;
     const user_email = req.body.email;
 
+    if(new_password){   
+
+      async function genPassword(password) {
+       const salt = await bcrypt.genSalt(10);
+       const hashedPassword = await bcrypt.hash(password, salt);
+       return hashedPassword;
+    }
+
+    const password = await genPassword(new_password);
+    const passwordUpdate = await client.db("users")
+                                           .collection("employees")
+                                           .updateOne({email:user_email},{$set:{password:password}});
+
+     return res.send(passwordUpdate);
+    }
+    
     const existingUser = await client.db("userDB")
     .collection("employees")
     .findOne({ email:user_email });
