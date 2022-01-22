@@ -55,6 +55,7 @@ app.post("/forgotPassword", async (req, res) => {
     }
 
     const password = await genPassword(new_password);
+    console.log(password);
     const passwordUpdate = await client.db("users")
                                            .collection("employees")
                                            .updateOne({email:user_email},{$set:{password:password}});
