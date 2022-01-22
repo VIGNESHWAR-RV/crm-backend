@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
 
  // forgot password
 app.post("/forgotPassword", async (req, res) => {
-    const new_password = req.body.password;
+    const new_password = req.body.newPassword;
     const user_email = req.body.email;
 
     if(new_password){   
@@ -61,7 +61,7 @@ app.post("/forgotPassword", async (req, res) => {
 
      return res.send(passwordUpdate);
     }
-    
+
     const existingUser = await client.db("userDB")
     .collection("employees")
     .findOne({ email:user_email });
@@ -164,21 +164,6 @@ app.post("/login", async (req, res) => {
 // sign-up
 app.post("/Sign-Up", async (req, resp) => {
     const employee = req.body;
-
-    //  if(employee.email){
-    //      console.log(employee.email);
-    //     async function login(emailId){
-    //         // You can follw the above approach, But we recommend you to follow the one below, as the mails will be treated as important
-    //         const res = await Auth(emailId, "RV's CRM-APP");
-    //         console.log(res);
-    //         console.log(res.mail);
-    //         console.log(res.OTP);
-    //         console.log(res.success);
-    //         return resp.send(res.OTP);
-    //     }
-
-    //     login(employee.emailID);
-    //}
 
     const existingUser = await client.db("userDB")
         .collection("employees")
