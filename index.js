@@ -191,10 +191,11 @@ if(employee.verifyEmail){
 // dashBoard
 
 app.get("/crm-app",User_auth,async (req,res)=>{
-   
-    const activeLeads = await client.db("userDB").collection(users).find({status:"active"}).toArray();
 
-    
+
+    const leads = await client.db("userDB").collection(users).find({}).toArray();
+
+    res.send(leads);
 })
 
 
