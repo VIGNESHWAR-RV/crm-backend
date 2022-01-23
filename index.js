@@ -142,7 +142,7 @@ app.post("/Sign-Up", async (req, resp) => {
     //check for user name
     const existingUser = await client.db("userDB")
         .collection("employees")
-        .findOne({ name: employee.name });
+        .findOne({ name: employee.verifyName });
                             
     if (existingUser) {
         return resp.status(400).send("username already exists");
@@ -173,11 +173,11 @@ app.post("/Sign-Up", async (req, resp) => {
     }
 
     employee.password = await genPassword(employee.password);
-    console.log("employee.password",employee.password);
+
     const result = await client.db("userDB")
         .collection("employees")
         .insertOne(employee);
-    console.log("result",result);
+        
     resp.send(result);
 })
 
