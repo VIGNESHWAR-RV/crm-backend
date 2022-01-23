@@ -76,38 +76,7 @@ app.post("/forgotPassword", async (req, res) => {
         return res.status(400).send("there is no user account such mail buddy");
     }
 
-    const transport = nodemailer.createTransport({
-
-        service: 'gmail',
-        auth: {
-            type: 'OAuth2',
-            user: process.env.MAIL_ID,
-            pass: process.env.MAIL_PASS,
-            clientId: process.env.CLIENT_ID,
-            clientSecret: process.env.CLIENT_SECRET,
-            refreshToken: process.env.TOKEN_URI
-        }
-    });
-
-    const otp_number = Math.floor(Math.random() * 1000000);
-
-    var mailOptions = {
-        from: '"RV`s CRM TEAM" <noreplycrmbyrv@gmail.com>',
-        to: user_email,
-        subject: 'Mail verification for password reset',
-        text: 'Hey there, it`s our first message sent with Nodemailer ',
-        html: `<b>Hii user</b>The verification code for resetting password is <b>${otp_number}</b><br>`
-    };
-
-    transport.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return console.log(error);
-        }
-        console.log('Message sent: %s', info.messageId);
-        return res.send({message:"frontEnd dude!!!, I sent the mail.Alert him to check the inbox and verify the otp",
-                         otp:otp_number,
-                        })
-    });
+    otpMailer(user_email, res);
 
 });
 
@@ -175,12 +144,25 @@ app.post("/Sign-Up", async (req, resp) => {
         .collection("employees")
         .findOne({ name: employee.name });
 
+    const existingMail = await client.db("userDB")
+                                     .collection("employees")
+                                     .findOne({email:employee.verifyEmail});
 
+                                
     if (existingUser) {
         return resp.status(400).send("username already exists");
     }
+
     if (employee.check === 1) {
         return resp.status(200).send("username available");
+    }
+
+    if(existingMail){
+        return resp.status(400).send("email already exists"); 
+    }
+
+    if(employee.mailCheck){
+        return await otpMailer(employee.emailID,resp);
     }
 
 
@@ -199,60 +181,111 @@ app.post("/Sign-Up", async (req, resp) => {
     resp.send(result);
 })
 
-//add - lead
-app.post("/addLeads", Manager_auth, async (req, res) => {
-    const usersLead = req.body;
-    const result = await client.db("userDB")
-        .collection("users")
-        .insertMany(usersLead);
 
-    res.send(result);
-    console.log("addedd");
-});
+// dashBoard
 
-//delete all - leads
-app.delete("/deleteLeads/all", Admin_auth, async (req, res) => {
-    const result = await client.db("userDB").collection("users").deleteMany({});
-    res.send(result);
+app.get("/crm-app",User_auth,async (req,res)=>{
+   
+    const activeLeads = await client.db("userDB").collection(users).find({status:"active"}).toArray();
+
+    
 })
 
-//delete - lead
-app.delete("/deleteLeads/:id", Admin_auth, async (req, res) => {
-    const id = req.id;
-    console.log(id);
-    const result = await client.db("userDB").collection("users").deleteOne({ id: id });
-    res.send(result);
-})
 
-//get lead
-app.get("/leads/:id", Employee_auth, async (req, res) => {
-    console.log(req.params.id);
-    const result = await client.db("userDB")
-        .collection("users")
-        .findOne({ id: req.params.id });
-    res.send(result);
-});
 
-//get all and filtered leads
-app.get("/leads", User_auth, async (req, res) => {
-    const queries = req.query;
-    if (queries.rating) {
-        queries.rating = +queries.rating;
-    }
-    let filteredMovies = await client.db("userDB").collection("users").find(queries).toArray();
-    res.send(filteredMovies);
-})
+// leads
 
-//edit a lead
-app.put(`/lead/:id`, Manager_auth, async (req, res) => {
-    const id = req.params.id;
-    const EditMovie = request.body;
-    const result = await client.db("userDB")
-        .collection("users")
-        .updateOne({ id: id }, { $set: EditMovie });
-    res.send(result);
-    console.log("edited");
-});
+
+
+
+// //add - lead
+// app.post("/addLeads", Manager_auth, async (req, res) => {
+//     const usersLead = req.body;
+//     const result = await client.db("userDB")
+//         .collection("users")
+//         .insertMany(usersLead);
+
+//     res.send(result);
+//     console.log("addedd");
+// });
+
+// //delete all - leads
+// app.delete("/deleteLeads/all", Admin_auth, async (req, res) => {
+//     const result = await client.db("userDB").collection("users").deleteMany({});
+//     res.send(result);
+// })
+
+// //delete - lead
+// app.delete("/deleteLeads/:id", Admin_auth, async (req, res) => {
+//     const id = req.id;
+//     console.log(id);
+//     const result = await client.db("userDB").collection("users").deleteOne({ id: id });
+//     res.send(result);
+// })
+
+// //get lead
+// app.get("/leads/:id", Employee_auth, async (req, res) => {
+//     console.log(req.params.id);
+//     const result = await client.db("userDB")
+//         .collection("users")
+//         .findOne({ id: req.params.id });
+//     res.send(result);
+// });
+
+// //get all and filtered leads
+// app.get("/leads", User_auth, async (req, res) => {
+//     const queries = req.query;
+//     if (queries.rating) {
+//         queries.rating = +queries.rating;
+//     }
+//     let filteredMovies = await client.db("userDB").collection("users").find(queries).toArray();
+//     res.send(filteredMovies);
+// })
+
+// //edit a lead
+// app.put(`/lead/:id`, Manager_auth, async (req, res) => {
+//     const id = req.params.id;
+//     const EditMovie = request.body;
+//     const result = await client.db("userDB")
+//         .collection("users")
+//         .updateOne({ id: id }, { $set: EditMovie });
+//     res.send(result);
+//     console.log("edited");
+// });
 
 
 app.listen(port, console.log("server started at port " + port));
+
+async function otpMailer(user_email, res) {
+    const transport = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            type: 'OAuth2',
+            user: process.env.MAIL_ID,
+            pass: process.env.MAIL_PASS,
+            clientId: process.env.CLIENT_ID,
+            clientSecret: process.env.CLIENT_SECRET,
+            refreshToken: process.env.TOKEN_URI
+        }
+    });
+
+    const otp_number = Math.floor(Math.random() * 1000000);
+
+    var mailOptions = {
+        from: '"RV`s CRM TEAM" <noreplycrmbyrv@gmail.com>',
+        to: user_email,
+        subject: 'Mail verification for password reset',
+        text: 'Hey there, it`s our first message sent with Nodemailer ',
+        html: `<b>Hii user</b>The verification code for resetting password is <b>${otp_number}</b><br>`
+    };
+
+    transport.sendMail(mailOptions,  async (error) => {
+        if (error) {
+            return res.status(400).send("email is not sent");
+        }
+        return res.send({
+            message: "frontEnd dude!!!, I sent the mail.Alert him to check the inbox and verify the otp",
+            otp: otp_number,
+        });
+    });
+}
