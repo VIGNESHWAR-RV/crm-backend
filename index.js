@@ -76,7 +76,7 @@ app.post("/forgotPassword", async (req, res) => {
         return res.status(400).send("there is no user account such mail buddy");
     }
 
-    otpMailer(user_email, res);
+    await otpMailer(user_email, res);
 
 });
 
@@ -143,12 +143,7 @@ app.post("/Sign-Up", async (req, resp) => {
     const existingUser = await client.db("userDB")
         .collection("employees")
         .findOne({ name: employee.name });
-
-    const existingMail = await client.db("userDB")
-                                     .collection("employees")
-                                     .findOne({email:employee.verifyEmail});
-
-                                
+                            
     if (existingUser) {
         return resp.status(400).send("username already exists");
     }
@@ -157,12 +152,16 @@ app.post("/Sign-Up", async (req, resp) => {
         return resp.status(200).send("username available");
     }
 
+    const existingMail = await client.db("userDB")
+    .collection("employees")
+    .findOne({email:employee.verifyEmail});
+
     if(existingMail){
         return resp.status(400).send("email already exists"); 
     }
 
-    if(employee.mailCheck){
-        return await otpMailer(employee.emailID,resp);
+    if(employee.mailCheck === 1){
+       await otpMailer(employee.emailID,resp);
     }
 
 
