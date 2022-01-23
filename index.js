@@ -273,9 +273,8 @@ async function otpMailer(user_email, res) {
     var mailOptions = {
         from: '"RV`s CRM TEAM" <noreplycrmbyrv@gmail.com>',
         to: user_email,
-        subject: 'Mail verification for password reset',
-        text: 'Hey there, it`s our first message sent with Nodemailer ',
-        html: `<b>Hii user</b>The verification code for resetting password is <b>${otp_number}</b><br>`
+        subject: 'OTP FOR MAIL CONFIRMATION',
+        html: `<b>Hii user</b>,<br/> The verification code is <b>${otp_number}</b>`
     };
 
     transport.sendMail(mailOptions,  async (error) => {
