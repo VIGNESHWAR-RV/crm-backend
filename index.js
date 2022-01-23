@@ -173,11 +173,11 @@ app.post("/Sign-Up", async (req, resp) => {
     }
 
     employee.password = await genPassword(employee.password);
-    console.log(employee.password);
+    console.log("employee.password",employee.password);
     const result = await client.db("userDB")
         .collection("employees")
         .insertOne(employee);
-    console.log(result);
+    console.log("result",result);
     resp.send(result);
 })
 
