@@ -55,7 +55,6 @@ app.post("/forgotPassword", async (req, res) => {
     }
 
     const password = await genPassword(new_password);
-    console.log(password);
     const passwordUpdate = await client.db("userDB")
                                            .collection("employees")
                                            .updateOne({email:user_email},{$set:{password:password}});
@@ -140,6 +139,7 @@ app.post("/login", async (req, res) => {
 app.post("/Sign-Up", async (req, resp) => {
     const employee = req.body;
 
+    //check for user name
     const existingUser = await client.db("userDB")
         .collection("employees")
         .findOne({ name: employee.name });
@@ -152,6 +152,7 @@ app.post("/Sign-Up", async (req, resp) => {
         return resp.status(200).send("username available");
     }
 
+    // check for mail
     const existingMail = await client.db("userDB")
     .collection("employees")
     .findOne({email:employee.verifyEmail});
@@ -172,11 +173,11 @@ app.post("/Sign-Up", async (req, resp) => {
     }
 
     employee.password = await genPassword(employee.password);
-
+    console.log(employee.password);
     const result = await client.db("userDB")
         .collection("employees")
         .insertOne(employee);
-
+    console.log(result);
     resp.send(result);
 })
 
