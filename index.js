@@ -190,17 +190,23 @@ if(employee.verifyEmail){
 
 // dashBoard
 
-app.get("/crm-app",User_auth,async (req,res)=>{
+app.get("/crm-app/",User_auth,async (req,res)=>{
 
-
-    const leads = await client.db("userDB").collection(users).find({}).toArray();
+    const leads = await client.db("userDB").collection("users").find({}).toArray();
 
     res.send(leads);
 })
 
-
-
 // leads
+
+app.get("/crm-app/leads", User_auth, async (req, res) => {
+    const queries = req.query;
+   
+    const leads = await client.db("userDB").collection("users").find(queries).toArray();
+
+    res.send(leads);
+})
+
 
 
 
@@ -239,15 +245,7 @@ app.get("/crm-app",User_auth,async (req,res)=>{
 //     res.send(result);
 // });
 
-// //get all and filtered leads
-// app.get("/leads", User_auth, async (req, res) => {
-//     const queries = req.query;
-//     if (queries.rating) {
-//         queries.rating = +queries.rating;
-//     }
-//     let filteredMovies = await client.db("userDB").collection("users").find(queries).toArray();
-//     res.send(filteredMovies);
-// })
+
 
 // //edit a lead
 // app.put(`/lead/:id`, Manager_auth, async (req, res) => {
