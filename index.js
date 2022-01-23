@@ -161,7 +161,7 @@ app.post("/Sign-Up", async (req, resp) => {
     }
 
     if(employee.mailCheck === 1){
-       await otpMailer(employee.emailID,resp);
+       await otpMailer(employee.verifyEmail,resp);
     }
 
 
