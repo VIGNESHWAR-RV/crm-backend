@@ -157,7 +157,7 @@ app.post("/Sign-Up", async (req, resp) => {
     .findOne({email:employee.verifyEmail});
 
     if(existingMail){
-        return resp.status(400).send("email already exists"); 
+        return resp.status(400).send({message:"email already exists"}); 
     }
 
     if(employee.mailCheck === 1){
