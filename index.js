@@ -140,6 +140,9 @@ app.post("/Sign-Up", async (req, resp) => {
     const employee = req.body;
 
     //check for user name
+
+if(employee.verifyName){
+
     const existingUser = await client.db("userDB")
         .collection("employees")
         .findOne({ name: employee.verifyName });
@@ -148,11 +151,13 @@ app.post("/Sign-Up", async (req, resp) => {
         return resp.status(400).send("username already exists");
     }
 
-    if (employee.check === 1) {
-        return resp.status(200).send("username available");
-    }
-
+    return resp.status(200).send("username available");
+    
+}
     // check for mail
+
+if(employee.verifyEmail){
+
     const existingMail = await client.db("userDB")
     .collection("employees")
     .findOne({email:employee.verifyEmail});
@@ -161,24 +166,25 @@ app.post("/Sign-Up", async (req, resp) => {
         return resp.status(400).send({message:"email already exists"}); 
     }
 
-    if(employee.mailCheck === 1){
-       await otpMailer(employee.verifyEmail,resp);
-    }
+     return await otpMailer(employee.verifyEmail,resp);
+
+}
 
 
     async function genPassword(password) {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         return hashedPassword;
-    }
+    };
 
     employee.password = await genPassword(employee.password);
 
     const result = await client.db("userDB")
         .collection("employees")
         .insertOne(employee);
-        
+
     resp.send(result);
+
 })
 
 
