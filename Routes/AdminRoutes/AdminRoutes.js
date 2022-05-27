@@ -1,4 +1,5 @@
 import express from "express";
+import { client, createUserName, genPassword } from "../../index.js";
 import { Admin_auth } from "../../middleware/auth.js";
 
 const route = express.Router();
@@ -6,29 +7,36 @@ const route = express.Router();
  //dashboard section
 route.get('/dashboard',Admin_auth,async (req, res) => {
      try{
-         const graphData = [{name:"day 1",cost:7},
+         if(req.params.loggedInUser){
+              const user = req.params.loggedInUser;
+
+              // console.log(user);
+
+              const graphData = [{name:"day 1",cost:7},
                             {name:"day 2",cost:4},
                             {name:"day 3",cost:12},
                             {name:"day 4",cost:8},
                             {name:"day 5",cost:15},
                             {name:"day 6",cost:20},
                             {name:"day 7",cost:10},
-                           ];
+                                ];
+     
+              // const notesData = "This is my first note";
+     
+              const infoCardData = ["5000","0"];
+     
+              const pendingJobData = [{firstName:"Demo Customer",lastName:"D1",customer_id:"123456",dueDate:"2022-05-26",taskDescription:"Completing the CRM task",},
+                                      {firstName:"Demo Customer",lastName:"D2",customer_id:"234567",dueDate:"2022-05-27",taskDescription:"Repairing the laptop",},
+                                      {firstName:"Demo Customer",lastName:"D3",customer_id:"345678",dueDate:"2022-05-27",taskDescription:"Mobile repairing",},
+                                      {firstName:"Demo Customer",lastName:"D4",customer_id:"456789",dueDate:"2022-05-27",taskDescription:"TV repairing"},
+                                      {firstName:"Demo Customer",lastName:"D5",customer_id:"567890",dueDate:"2022-05-27",taskDescription:"RO repairing",},
+                                      {firstName:"Demo Customer",lastName:"D6",customer_id:"678901",dueDate:"2022-05-30",taskDescription:"Washing Machine repairing",},
+                                     ];
 
-         const notesData = "This is my first note";
-
-         const infoCardData = ["5000","0"];
-
-         const pendingJobData = [{firstName:"Vicky",lastName:"RV",customer_id:666666,dueDate:"2022-05-17",taskDescription:"Have to complete the project as soon as possible"},
-                                 {firstName:"Vicky",lastName:"RV",customer_id:666666,dueDate:"2022-05-18",taskDescription:"Have to complete the project as soon as possible"},
-                                 {firstName:"Vicky",lastName:"RV",customer_id:666666,dueDate:"2022-05-19",taskDescription:"Have to complete the project as soon as possible"},
-                                 {firstName:"Vicky",lastName:"RV",customer_id:666666,dueDate:"2022-05-20",taskDescription:"Have to complete the project as soon as possible"},
-                                 {firstName:"Vicky",lastName:"RV",customer_id:666666,dueDate:"2022-05-21",taskDescription:"Have to complete the project as soon as possible"},
-                                 {firstName:"Vicky",lastName:"RV",customer_id:666666,dueDate:"2022-05-22",taskDescription:"Have to complete the project as soon as possible"}
-                                ]
-
-        return res.send({graphData,notesData,infoCardData,pendingJobData});
-
+     
+             return res.send({graphData,notesData:user.notes,infoCardData,pendingJobData});
+         }
+         return res.status(500).send({message:"something went wrong , please try again later"});
      }
      catch(e){
       console.error("error at getting dashboard data from admin/dashboard ----> ",e.message);
@@ -40,12 +48,20 @@ route.get('/dashboard',Admin_auth,async (req, res) => {
 route.post("/dashboard/notes",Admin_auth,async (req, res) => {
 
   try{
-    const data = req.body;
+    const { notes="" } = req.body;
+    const user = req.params.loggedInUser;
 
-    if(data){
-       return res.send({message:"successfully saved notes"});
+    if( typeof(notes)==="string" && user){
+
+          const update = await client.db("CRM").collection("accounts").updateOne(user,{$set:{notes:notes}},{upsert:true});
+          
+          if(update){
+             return res.send({message:"successfully saved notes"});
+          }else{
+             return res.status(400).send({message:"error while saving the message"});
+          }
     }else{
-       return res.status(400).send({message:"no data received"});
+       return res.status(400).send({message:"not authorized"});
     }
 }
 catch(e){
@@ -56,13 +72,6 @@ catch(e){
 
 });
 
-// route.put("/",async (req, res) => {
-
-// });
-
-// route.delete("/",async (req, res) => {
-
-// });
 
 // -------------------------------------------------
 
@@ -74,55 +83,59 @@ route.get("/teamLeads/table",Admin_auth,async (req,res)=>{
 
     const tableData = [
       {
-       firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
+       firstName:"teamLead",
+       lastName:"D1",
+       email:"teamleaddemo1234@gmail.com",
        status:"ACTIVE",
-       userName:"RV-1234",
+       userName:"TD-123456",
        revenue:3200,
-       role:"Team Lead",
+       role:"team lead",
        pendingJobs:3,
        completedJobs:6,
-       joinedDate:"12/02/2022"
+       joinedDate:"12/02/2022",
+       id: 123456781
        },
 
        {
-       firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
+       firstName:"teamLead",
+       lastName:"D2",
+       email:"teamleaddemo234567@gmail.com",
        status:"ACTIVE",
-       userName:"RV-4567",
+       userName:"TD-234567",
        revenue:3600,
-       role:"Team Lead",
+       role:"team lead",
        pendingJobs:5,
        completedJobs:6,
-       joinedDate:"12/02/2022"
+       joinedDate:"12/02/2022",
+       id: 123456782
        },
 
        {
-       firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
+       firstName:"teamLead",
+       lastName:"D3",
+       email:"teamleaddemo345678@gmail.com",
        status:"ACTIVE",
-       userName:"RV-1234",
+       userName:"TD-345678",
        revenue:3000,
-       role:"Team Lead",
+       role:"team lead",
        pendingJobs:2,
        completedJobs:6,
-       joinedDate:"12/02/2022"
+       joinedDate:"12/02/2022",
+       id: 123456783
        },
 
        {
-       firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
+       firstName:"teamLead",
+       lastName:"D4",
+       email:"teamleaddemo456789@gmail.com",
        status:"ACTIVE",
-       userName:"RV-1234",
+       userName:"RV-456789",
        revenue:6000,
-       role:"Team Lead",
+       role:"team lead",
        pendingJobs:0,
        completedJobs:6,
-       joinedDate:"12/02/2022"
+       joinedDate:"12/02/2022",
+       id: 123456784
        }
      ];
 
@@ -139,54 +152,27 @@ route.get("/teamLeads/table",Admin_auth,async (req,res)=>{
    
 });
 
-
-route.get("/teamLeads/:userName",Admin_auth,async (req, res) => {
+route.get("/teamLeads/add",Admin_auth,async(req,res)=>{
 
   try{
 
-    const { userName } = req.params;
-    // console.log(userName); 
+      const data  = [{userName:"TD-123456" },
+                     {userName:"TD-234567" },
+                     {userName:"TD-345678" },
+                     {userName:"TD-456789"}
+                    ];
 
-    let data = {userData:{firstName:"Vigneshwar",
-                          lastName:"Venkatachalam",
-                          email:"vigneshwarrv666@gmail.com",
-                          status:"ACTIVE",
-                          pending:3,
-                          completed:6,
-                          revenue:3200,
-                          userName:"RV-123456",
-                          role:"team lead",
-                          pendingJobs:3,
-                          completedJobs:6,
-                          joinedDate:"12/02/2022"},
-                  teamLeads:[{userName:"RV-123455",id: 123456781 },
-                       {userName:"RV-123454",id: 123456782 },
-                       {userName:"RV-123453",id: 123456783 },
-                      ],
-                  teamMembers:[{userName:"RV-123545",id: 123456780 ,pendingJobs: 6},
-                         {userName:"RV-123546",id: 123456783 ,pendingJobs: 6},
-                         {userName:"RV-123547",id: 123456781 ,pendingJobs: 6},
-                         {userName:"RV-123548", id: 123456782 ,pendingJobs: 6}
-                        ],
-                  employeesList:[
-                      { userName: "RV-123545", id: 123456780 ,pendingJobs: 6},
-                      { userName: "RV-123547", id: 123456781 ,penddingJobs: 6},
-                      { userName: 'RV-123548', id: 123456782 ,pendingJobs: 6},
-                      { userName: "RV-123546", id: 123456783 ,pendingJobs: 6},
-                      { userName: 'RV-123549', id: 123456784 ,pendingJobs: 6},
-                      { userName: "RV-123544", id: 123456785 ,pendingJobs: 6},
-                     ]
-                    }
-
-    // console.log(data);
-    return res.send(data);
+      if(data){
+        return res.send(data);
+      }else{
+        return res.status(400).send({message:"no such data"});
+      }
 
   }
   catch(e){
-      console.error("error at getting team lead data from admin/teamleads/:username -----> ",e.message);
+      console.error("error at getting team lead data from admin/employees/:add -----> ",e.message);
       return res.status(500).send({message:"server error, please try again later "}); 
   }
-
 });
 
 
@@ -194,11 +180,30 @@ route.post("/teamLeads/add",Admin_auth,async (req, res) => {
 
   try{
       const data = req.body;
+      const { loggedInUser } = req.params;
   
-      if(data){
-         return res.send({message:"successfully sent mail"});
+      if(data && loggedInUser){
+
+         const userName = await createUserName(data);
+
+         const password = await genPassword("DemoTeamLead@123");
+
+         const joinedDate = new Date(Date.now()).toDateString().split(" ").slice(1,4).join("/");
+
+         const newTeamLead = await client.db("CRM").collection("accounts").insertOne({...data,company:loggedInUser.company,password,role:"team Lead",userName,joinedDate,notes:""})
+
+         if(newTeamLead){
+
+            return res.send({message:"successfully sent mail"});
+
+         }
+
+         return res.status(400).send({message:"Couldn't register user"});
+
       }else{
-         return res.status(400).send({message:"no data received"});
+
+            return res.status(400).send({message:"no data received"});
+
       }
   }
   catch(e){
@@ -207,7 +212,6 @@ route.post("/teamLeads/add",Admin_auth,async (req, res) => {
   }
 
 });
-
 
 route.put("/teamLeads/update",Admin_auth,async (req, res) => {
 
@@ -245,6 +249,114 @@ route.delete("/teamLeads/delete",Admin_auth,async (req, res) => {
 
 });
 
+route.get("/teamLeads/:userName",Admin_auth,async (req, res) => {
+
+  try{
+
+    const { userName } = req.params;
+    // console.log(userName); 
+
+    const tableData = [
+      {
+       firstName:"teamLead",
+       lastName:"D1",
+       email:"teamleaddemo1234@gmail.com",
+       status:"ACTIVE",
+       userName:"TD-123456",
+       revenue:3200,
+       role:"team lead",
+       pendingJobs:3,
+       completedJobs:6,
+       joinedDate:"12/02/2022",
+       id: 123456781
+       },
+
+       {
+       firstName:"teamLead",
+       lastName:"D2",
+       email:"teamleaddemo234567@gmail.com",
+       status:"ACTIVE",
+       userName:"TD-234567",
+       revenue:3600,
+       role:"team lead",
+       pendingJobs:5,
+       completedJobs:6,
+       joinedDate:"12/02/2022",
+       id: 123456782
+       },
+
+       {
+       firstName:"teamLead",
+       lastName:"D3",
+       email:"teamleaddemo345678@gmail.com",
+       status:"ACTIVE",
+       userName:"TD-345678",
+       revenue:3000,
+       role:"team lead",
+       pendingJobs:2,
+       completedJobs:6,
+       joinedDate:"12/02/2022",
+       id: 123456783
+       },
+
+       {
+       firstName:"teamLead",
+       lastName:"D4",
+       email:"teamleaddemo456789@gmail.com",
+       status:"ACTIVE",
+       userName:"RV-456789",
+       revenue:6000,
+       role:"team lead",
+       pendingJobs:0,
+       completedJobs:6,
+       joinedDate:"12/02/2022",
+       id: 123456784
+       }
+     ];
+
+     const userData = tableData.find((data)=>userName === data.userName);
+
+     const teamLeads = tableData.filter((data)=>userName !== data.userName).map((data)=>{return {userName:data.userName,id:data.id}});
+
+     const pendingJobData = [{firstName:"Demo Customer",lastName:"D1",customer_id:"123456",dueDate:"2022-05-26",taskDescription:"Completing the CRM task",},
+                             {firstName:"Demo Customer",lastName:"D2",customer_id:"234567",dueDate:"2022-05-27",taskDescription:"Repairing the laptop",},
+                             {firstName:"Demo Customer",lastName:"D3",customer_id:"345678",dueDate:"2022-05-27",taskDescription:"Mobile repairing",},
+                             {firstName:"Demo Customer",lastName:"D4",customer_id:"456789",dueDate:"2022-05-27",taskDescription:"TV repairing"},
+                             {firstName:"Demo Customer",lastName:"D5",customer_id:"567890",dueDate:"2022-05-27",taskDescription:"RO repairing",},
+                             {firstName:"Demo Customer",lastName:"D6",customer_id:"678901",dueDate:"2022-05-30",taskDescription:"Washing Machine repairing",},
+                            ];
+
+
+    let data = {  userData,
+                  teamLeads,
+                  teamMembers:[{userName:"RV-123545",id: 123456780 ,pendingJobs: 6},
+                         {userName:"RV-123546",id: 123456783 ,pendingJobs: 6},
+                         {userName:"RV-123547",id: 123456781 ,pendingJobs: 6},
+                         {userName:"RV-123548", id: 123456782 ,pendingJobs: 6}
+                        ],
+                  employeesList:[
+                      { userName: "RV-123545", id: 123456780 ,pendingJobs: 6},
+                      { userName: "RV-123547", id: 123456781 ,penddingJobs: 6},
+                      { userName: 'RV-123548', id: 123456782 ,pendingJobs: 6},
+                      { userName: "RV-123546", id: 123456783 ,pendingJobs: 6},
+                      { userName: 'RV-123549', id: 123456784 ,pendingJobs: 6},
+                      { userName: "RV-123544", id: 123456785 ,pendingJobs: 6},
+                     ],
+                  pendingJobData
+                    }
+
+    // console.log(data);
+    return res.send(data);
+
+  }
+  catch(e){
+      console.error("error at getting team lead data from admin/teamleads/:username -----> ",e.message);
+      return res.status(500).send({message:"server error, please try again later "}); 
+  }
+
+});
+
+
 //----------------------------------------------------------------
 
 
@@ -255,52 +367,52 @@ route.get("/employees/table",Admin_auth,async (req, res) => {
 
     const tableData = [
       {
-       firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
+       firstName:"Employee",
+       lastName:"D1",
+       email:"employeedemo1@gmail.com",
        status:"ACTIVE",
-       userName:"RV-1234",
+       userName:"ED-123456",
        revenue:3200,
-       role:"Team Lead",
+       role:"employee",
        pendingJobs:3,
        completedJobs:6,
        joinedDate:"12/02/2022"
        },
 
        {
-       firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
+       firstName:"Employee",
+       lastName:"D2",
+       email:"employeedemo2@gmail.com",
        status:"ACTIVE",
-       userName:"RV-4567",
+       userName:"ED-234567",
        revenue:3600,
-       role:"Team Lead",
+       role:"employee",
        pendingJobs:5,
        completedJobs:6,
        joinedDate:"12/02/2022"
        },
 
        {
-       firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
+       firstName:"Employee",
+       lastName:"D3",
+       email:"employeedemo3@gmail.com",
        status:"ACTIVE",
-       userName:"RV-1234",
+       userName:"ED-345678",
        revenue:3000,
-       role:"Team Lead",
+       role:"employee",
        pendingJobs:2,
        completedJobs:6,
        joinedDate:"12/02/2022"
        },
 
        {
-       firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
+       firstName:"Employee",
+       lastName:"D4",
+       email:"employeedemo4@gmail.com",
        status:"ACTIVE",
-       userName:"RV-1234",
+       userName:"ED-456789",
        revenue:6000,
-       role:"Team Lead",
+       role:"employee",
        pendingJobs:0,
        completedJobs:6,
        joinedDate:"12/02/2022"
@@ -322,10 +434,10 @@ route.get("/employees/table",Admin_auth,async (req, res) => {
 route.get("/employees/add",Admin_auth,async(req,res)=>{
 
   try{
-
-      const data  = [{userName:"RV-123455" },
-                     {userName:"RV-123454" },
-                     {userName:"RV-123453" },
+      const data  = [{userName:"TD-123456" },
+                     {userName:"TD-234567" },
+                     {userName:"TD-345678" },
+                     {userName:"TD-456789"}
                     ];
 
       if(data){
@@ -341,52 +453,34 @@ route.get("/employees/add",Admin_auth,async(req,res)=>{
   }
 });
 
-route.get("/employees/:userName",Admin_auth,async (req, res) => {
-
-  try{
-
-    const { userName } = req.params;
-    // console.log(userName); 
-
-    let data = {userData:{firstName:"Vigneshwar",
-                          lastName:"Venkatachalam",
-                          email:"vigneshwarrv666@gmail.com",
-                          status:"ACTIVE",
-                          pending:3,
-                          completed:6,
-                          revenue:3200,
-                          userName:"RV-123456",
-                          role:"employee",
-                          pendingJobs:3,
-                          completedJobs:6,
-                          joinedDate:"12/02/2022"},
-                          teamMembers:[{userName:"RV-123545",id: 123456780 ,pendingJobs: 6},
-                                       {userName:"RV-123546",id: 123456783 ,pendingJobs: 6},
-                                       {userName:"RV-123547",id: 123456781 ,pendingJobs: 6},
-                                       {userName:"RV-123548", id: 123456782 ,pendingJobs: 6}
-                                      ]
-                    }
-
-    // console.log(data);
-    return res.send(data);
-
-  }
-  catch(e){
-      console.error("error at getting employee data from admin/employees/:username -----> ",e.message);
-      return res.status(500).send({message:"server error, please try again later "}); 
-  }
-
-});
-
 route.post("/employees/add",Admin_auth,async (req, res) => {
 
   try{
     const data = req.body;
+    const { loggedInUser } = req.params;
+  
+    if(data && loggedInUser){
 
-    if(data){
-       return res.send({message:"successfully sent mail"});
+       const userName = await createUserName(data);
+
+       const password = await genPassword("DemoEmployee@123");
+
+       const joinedDate = new Date(Date.now()).toDateString().split(" ").slice(1,4).join("/");
+
+       const newTeamLead = await client.db("CRM").collection("accounts").insertOne({...data,company:loggedInUser.company,password,role:"employee",userName,joinedDate,notes:""})
+
+       if(newTeamLead){
+
+          return res.send({message:"successfully sent mail"});
+
+       }
+
+       return res.status(400).send({message:"Couldn't register user"});
+
     }else{
-       return res.status(400).send({message:"no data received"});
+
+          return res.status(400).send({message:"no data received"});
+
     }
   }
   catch(e){
@@ -432,6 +526,99 @@ route.delete("/employees/delete",Admin_auth,async (req, res) => {
 
 });
 
+
+route.get("/employees/:userName",Admin_auth,async (req, res) => {
+
+  try{
+
+    const { userName } = req.params;
+    // console.log(userName); 
+
+    const tableData = [
+      {
+       firstName:"Employee",
+       lastName:"D1",
+       email:"employeedemo1@gmail.com",
+       status:"ACTIVE",
+       userName:"ED-123456",
+       revenue:3200,
+       role:"employee",
+       pendingJobs:3,
+       completedJobs:6,
+       joinedDate:"12/02/2022"
+       },
+
+       {
+       firstName:"Employee",
+       lastName:"D2",
+       email:"employeedemo2@gmail.com",
+       status:"ACTIVE",
+       userName:"ED-234567",
+       revenue:3600,
+       role:"employee",
+       pendingJobs:5,
+       completedJobs:6,
+       joinedDate:"12/02/2022"
+       },
+
+       {
+       firstName:"Employee",
+       lastName:"D3",
+       email:"employeedemo3@gmail.com",
+       status:"ACTIVE",
+       userName:"ED-345678",
+       revenue:3000,
+       role:"employee",
+       pendingJobs:2,
+       completedJobs:6,
+       joinedDate:"12/02/2022"
+       },
+
+       {
+       firstName:"Employee",
+       lastName:"D4",
+       email:"employeedemo4@gmail.com",
+       status:"ACTIVE",
+       userName:"ED-456789",
+       revenue:6000,
+       role:"employee",
+       pendingJobs:0,
+       completedJobs:6,
+       joinedDate:"12/02/2022"
+       }
+     ];
+
+     const userData = tableData.find((data)=>userName === data.userName);
+
+     const teamMembers = tableData.filter((data)=>userName !== data.userName).map((data)=>{return {userName:data.userName,id:data.id}});
+
+     const pendingJobData = [{firstName:"Demo Customer",lastName:"D1",customer_id:"123456",dueDate:"2022-05-26",taskDescription:"Completing the CRM task",},
+                            {firstName:"Demo Customer",lastName:"D2",customer_id:"234567",dueDate:"2022-05-27",taskDescription:"Repairing the laptop",},
+                            {firstName:"Demo Customer",lastName:"D3",customer_id:"345678",dueDate:"2022-05-27",taskDescription:"Mobile repairing",},
+                            {firstName:"Demo Customer",lastName:"D4",customer_id:"456789",dueDate:"2022-05-27",taskDescription:"TV repairing"},
+                            {firstName:"Demo Customer",lastName:"D5",customer_id:"567890",dueDate:"2022-05-27",taskDescription:"RO repairing",},
+                            {firstName:"Demo Customer",lastName:"D6",customer_id:"678901",dueDate:"2022-05-30",taskDescription:"Washing Machine repairing",},
+                           ];
+
+
+
+    let data = {userData,
+                teamMembers,
+                pendingJobData
+                    }
+
+    // console.log(data);
+    return res.send(data);
+
+  }
+  catch(e){
+      console.error("error at getting employee data from admin/employees/:username -----> ",e.message);
+      return res.status(500).send({message:"server error, please try again later "}); 
+  }
+
+});
+
+
 //----------------------------------------------------------------
 
  //Customers section
@@ -439,76 +626,157 @@ route.get("/customers/table",Admin_auth,async (req, res) => {
 
   try{
 
+
     const tableData = [
       {
-       firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
-       status:"not started",
-       customer_id:"666666",
-       Address:"9/161,uthukaadu,seelanaikanpatty,salem",
-       contact:"+91-9080306971",
-       taskDescription:"Repairing the laptop",
-       taskOwner:"RV-1234",
-       startDate:"2022-05-15",
-       dueDate:"2022-05-15",
-       PreviousTasks:[],
-       createdBy:"",
-       createdDate:"2022-05-13"
-       },
+      firstName:"Demo Customer",
+      lastName:"D1",
+      email:"democustomerd1@gmail.com",
+      status:"in-complete",
+      customer_id:"123456",
+      address:"1/10,Demo Nagar,Demo City,Demo State,Demo",
+      phone:"+91-1234567890",
+      taskDescription:"Completing the CRM task",
+      taskOwner:"ED-123456",
+      teamLead:"TD-123456",
+      startDate:"2022-05-25",
+      dueDate:"2022-05-26",
+      PreviousTasks:[],
+      createdBy:"",
+      createdDate:"2022-05-20"
+      },
 
-       {
-        firstName:"Vigneshwar",
-        lastName:"Venkatachalam",
-        email:"vigneshwarrv666@gmail.com",
-        status:"in progress",
-        customer_id:"666666",
-        Address:"9/161,uthukaadu,seelanaikanpatty,salem",
-        contact:"+91-9080306971",
-        taskDescription:"Repairing the laptop",
-        taskOwner:"RV-1234",
-        startDate:"2022-05-15",
-        dueDate:"2022-05-14",
-        PreviousTask:[],
-        createdBy:"",
-        createdDate:"2022-05-13"
-       },
-
-       {
-       firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
-       status:"completed",
-       customer_id:"666666",
-       Address:"9/161,uthukaadu,seelanaikanpatty,salem",
-       contact:"+91-9080306971",
+      {
+       firstName:"Demo Customer",
+       lastName:"D2",
+       email:"democustomerd2@gmail.com",
+       status:"in-progress",
+       customer_id:"234567",
+       address:"2/10,Demo Naga,Demo City,Demo State,Demo",
+       phone:"+91-2345678901",
        taskDescription:"Repairing the laptop",
-       taskOwner:"RV-1234",
-       startDate:"2022-05-15",
-       dueDate:"2022-05-16",
+       taskOwner:"ED-234567",
+       teamLead:"TD-123456",
+       startDate:"2022-05-20",
+       dueDate:"2022-05-27",
        PreviousTask:[],
        createdBy:"",
-       createdDate:"2022-05-13"
-       },
+       createdDate:"2022-05-18"
+      },
 
-       {
-        firstName:"Vigneshwar",
-       lastName:"Venkatachalam",
-       email:"vigneshwarrv666@gmail.com",
-       status:"completed",
-       customer_id:"666666",
-       Address:"9/161,uthukaadu,seelanaikanpatty,salem",
-       contact:"+91-9080306971",
-       taskDescription:"Repairing the laptop",
-       taskOwner:"RV-1234",
-       startDate:"2022-05-15",
-       dueDate:"2022-05-18",
+      {
+       firstName:"Demo Customer",
+       lastName:"D3",
+       email:"democustomerd3@gmail.com",
+       status:"in-complete",
+       customer_id:"345678",
+       address:"3/10,Demo Naga,Demo City,Demo State,Demo",
+       phone:"+91-2345678901",
+       taskDescription:"Mobile repairing",
+       taskOwner:"ED-345678",
+       teamLead:"TD-234567",
+       startDate:"2022-05-20",
+       dueDate:"2022-05-27",
        PreviousTask:[],
        createdBy:"",
-       createdDate:"2022-05-13"
-       }
-     ];
+       createdDate:"2022-05-18"
+      },
       
+      {
+       firstName:"Demo Customer",
+       lastName:"D4",
+       email:"democustomerd4@gmail.com",
+       status:"in-complete",
+       customer_id:"456789",
+       address:"4/10,Demo Naga,Demo City,Demo State,Demo",
+       phone:"+91-2345678901",
+       taskDescription:"Television repairing",
+       taskOwner:"ED-234567",
+       teamLead:"TD-234567",
+       startDate:"2022-05-20",
+       dueDate:"2022-05-27",
+       PreviousTask:[],
+       createdBy:"",
+       createdDate:"2022-05-18"
+      },
+      
+      {
+       firstName:"Demo Customer",
+       lastName:"D5",
+       email:"democustomerd5@gmail.com",
+       status:"in-progress",
+       customer_id:"567890",
+       address:"5/10,Demo Naga,Demo City,Demo State,Demo",
+       phone:"+91-2345678901",
+       taskDescription:"RO repairing",
+       taskOwner:"ED-345678",
+       teamLead:"TD-345678",
+       startDate:"2022-05-20",
+       dueDate:"2022-05-27",
+       PreviousTask:[],
+       createdBy:"",
+       createdDate:"2022-05-18"
+      },
+      
+      {
+       firstName:"Demo Customer",
+       lastName:"D6",
+       email:"democustomerd6@gmail.com",
+       status:"not-started",
+       customer_id:"678901",
+       address:"6/10,Demo Naga,Demo City,Demo State,Demo",
+       phone:"+91-2345678901",
+       taskDescription:"Washing Machine repairing",
+       taskOwner:"ED-123456",
+       teamLead:"TD-345678",
+       startDate:"2022-05-26",
+       dueDate:"2022-05-30",
+       PreviousTask:[],
+       createdBy:"",
+       createdDate:"2022-05-25"
+      },
+
+      {
+      firstName:"Demo Customer",
+      lastName:"D7",
+      email:"democustomerd7@gmail.com",
+      status:"completed",
+      customer_id:"789012",
+      address:"7/10,Demo Naga,Demo City,Demo State,Demo",
+      phone:"+91-3456789012",
+      taskDescription:"Repairing the refridgrator",
+      taskOwner:"ED-234567",
+      teamLead:"TD-456789",
+      startDate:"2022-05-14",
+      dueDate:"2022-05-20",
+      PreviousTask:[],
+      createdBy:"",
+      createdDate:"2022-05-13",
+      serviceCharge:"400",
+      completionDate:"2022-05-18"
+      },
+
+      {
+      firstName:"Demo Customer",
+      lastName:"D8",
+      email:"democustomerd8@gmail.com",
+      status:"completed",
+      customer_id:"890123",
+      address:"8/10,Demo Naga,Demo City,Demo State,Demo",
+      phone:"+91-4567890123",
+      taskDescription:"Repairing the Air conditioner",
+      taskOwner:"ED-345678",
+      teamLead:"TD-456789",
+      startDate:"2022-05-12",
+      dueDate:"2022-05-18",
+      PreviousTask:[],
+      createdBy:"",
+      createdDate:"2022-05-11",
+      serviceCharge:"400",
+      completionDate:"2022-05-17"
+      }
+    ];
+     
     return res.send(tableData);
 
   }
@@ -526,9 +794,10 @@ route.get("/customers/add",Admin_auth,async (req,res)=>{
 
     if(teamLead !== undefined ){
 
-        const data  = [{userName:"RV-123455" },
-                         {userName:"RV-123454" },
-                         {userName:"RV-123453" },
+        const data  = [{userName:"ED-123456" },
+                       {userName:"ED-234567" },
+                       {userName:"ED-345678" },
+                       {username:"ED-456789" }
                         ];
 
            if(data){
@@ -538,9 +807,10 @@ route.get("/customers/add",Admin_auth,async (req,res)=>{
            }
           
     }else{
-          const data  = [{userName:"RV-123455" },
-                         {userName:"RV-123454" },
-                         {userName:"RV-123453" },
+          const data  = [{userName:"TD-123456" },
+                         {userName:"TD-234567" },
+                         {userName:"TD-345678" },
+                         {userName:"TD-456789" }
                         ];
 
            if(data){
@@ -555,50 +825,6 @@ catch(e){
     console.error("error at getting team lead data from admin/customers/add -----> ",e.message);
     return res.status(500).send({message:"server error, please try again later "}); 
 }
-
-});
-
-route.get("/customers/:customer_id",Admin_auth,async (req,res)=>{
-
-  try{
-
-    const { customer_id } = req.params;
-    console.log(customer_id); 
-
-    let data = {customerData:
-                         {
-                           firstName: 'VIGNESHWAR',
-                           lastName: 'R.V',
-                           email: 'vigneshwarrv666@gmail.com',
-                           phone: '+919080306971',
-                           address: 'NO.39, M.G.R NAGAR,\nSEELANAIKANPATTI,',
-                           taskDescription: 'Complete the project work',
-                           teamLead: 'RV-123454',
-                           taskOwner: 'RV-123455',
-                           startDate: '2022-05-16T18:30:00.000Z',
-                           dueDate: '2022-05-19T18:30:00.000Z',
-                           status:"in-complete",
-                           customer_id
-                         },
-                teamLeads :[{userName:"RV-123455" },
-                            {userName:"RV-123454" },
-                            {userName:"RV-123453" },
-                           ],
-                taskOwners :[
-                            {userName:"RV-123455" },
-                            {userName:"RV-123454" },
-                            {userName:"RV-123453" },
-                           ]
-                    }
-
-    // console.log(data);
-    return res.send(data);
-
-  }
-  catch(e){
-      console.error("error at getting customer data from admin/customers/:customer_id -----> ",e.message);
-      return res.status(500).send({message:"server error, please try again later "}); 
-  }
 
 });
 
@@ -658,6 +884,193 @@ route.delete("/customers/delete",Admin_auth,async (req, res) =>{
 
 });
 
+route.get("/customers/:customer_id",Admin_auth,async (req,res)=>{
+
+  try{
+
+    const { customer_id } = req.params;
+    // console.log(customer_id); 
+
+    const tableData = [
+      {
+      firstName:"Demo Customer",
+      lastName:"D1",
+      email:"democustomerd1@gmail.com",
+      status:"in-complete",
+      customer_id:"123456",
+      address:"1/10,Demo Nagar,Demo City,Demo State,Demo",
+      phone:"+91-1234567890",
+      taskDescription:"Completing the CRM task",
+      taskOwner:"ED-123456",
+      teamLead:"TD-123456",
+      startDate:"2022-05-25",
+      dueDate:"2022-05-26",
+      PreviousTasks:[],
+      createdBy:"",
+      createdDate:"2022-05-20"
+      },
+
+      {
+       firstName:"Demo Customer",
+       lastName:"D2",
+       email:"democustomerd2@gmail.com",
+       status:"in-progress",
+       customer_id:"234567",
+       address:"2/10,Demo Naga,Demo City,Demo State,Demo",
+       phone:"+91-2345678901",
+       taskDescription:"Repairing the laptop",
+       taskOwner:"ED-234567",
+       teamLead:"TD-123456",
+       startDate:"2022-05-20",
+       dueDate:"2022-05-27",
+       PreviousTask:[],
+       createdBy:"",
+       createdDate:"2022-05-18"
+      },
+
+      {
+       firstName:"Demo Customer",
+       lastName:"D3",
+       email:"democustomerd3@gmail.com",
+       status:"in-complete",
+       customer_id:"345678",
+       address:"3/10,Demo Naga,Demo City,Demo State,Demo",
+       phone:"+91-2345678901",
+       taskDescription:"Mobile repairing",
+       taskOwner:"ED-345678",
+       teamLead:"TD-234567",
+       startDate:"2022-05-20",
+       dueDate:"2022-05-27",
+       PreviousTask:[],
+       createdBy:"",
+       createdDate:"2022-05-18"
+      },
+      
+      {
+       firstName:"Demo Customer",
+       lastName:"D4",
+       email:"democustomerd4@gmail.com",
+       status:"in-complete",
+       customer_id:"456789",
+       address:"4/10,Demo Naga,Demo City,Demo State,Demo",
+       phone:"+91-2345678901",
+       taskDescription:"Television repairing",
+       taskOwner:"ED-234567",
+       teamLead:"TD-234567",
+       startDate:"2022-05-20",
+       dueDate:"2022-05-27",
+       PreviousTask:[],
+       createdBy:"",
+       createdDate:"2022-05-18"
+      },
+      
+      {
+       firstName:"Demo Customer",
+       lastName:"D5",
+       email:"democustomerd5@gmail.com",
+       status:"in-progress",
+       customer_id:"567890",
+       address:"5/10,Demo Naga,Demo City,Demo State,Demo",
+       phone:"+91-2345678901",
+       taskDescription:"RO repairing",
+       taskOwner:"ED-345678",
+       teamLead:"TD-345678",
+       startDate:"2022-05-20",
+       dueDate:"2022-05-27",
+       PreviousTask:[],
+       createdBy:"",
+       createdDate:"2022-05-18"
+      },
+      
+      {
+       firstName:"Demo Customer",
+       lastName:"D6",
+       email:"democustomerd6@gmail.com",
+       status:"in-complete",
+       customer_id:"678901",
+       address:"6/10,Demo Naga,Demo City,Demo State,Demo",
+       phone:"+91-2345678901",
+       taskDescription:"Washing Machine repairing",
+       taskOwner:"ED-123456",
+       teamLead:"TD-345678",
+       startDate:"2022-05-26",
+       dueDate:"2022-05-30",
+       PreviousTask:[],
+       createdBy:"",
+       createdDate:"2022-05-25"
+      },
+
+      {
+      firstName:"Demo Customer",
+      lastName:"D7",
+      email:"democustomerd7@gmail.com",
+      status:"completed",
+      customer_id:"789012",
+      address:"7/10,Demo Naga,Demo City,Demo State,Demo",
+      phone:"+91-3456789012",
+      taskDescription:"Repairing the refridgrator",
+      taskOwner:"ED-234567",
+      teamLead:"TD-456789",
+      startDate:"2022-05-14",
+      dueDate:"2022-05-20",
+      PreviousTask:[],
+      createdBy:"",
+      createdDate:"2022-05-13",
+      serviceCharge:"400",
+      completionDate:"2022-05-18"
+      },
+
+      {
+      firstName:"Demo Customer",
+      lastName:"D8",
+      email:"democustomerd8@gmail.com",
+      status:"completed",
+      customer_id:"890123",
+      address:"8/10,Demo Naga,Demo City,Demo State,Demo",
+      phone:"+91-4567890123",
+      taskDescription:"Repairing the Air conditioner",
+      taskOwner:"ED-345678",
+      teamLead:"TD-456789",
+      startDate:"2022-05-12",
+      dueDate:"2022-05-18",
+      PreviousTask:[],
+      createdBy:"",
+      createdDate:"2022-05-11",
+      serviceCharge:"400",
+      completionDate:"2022-05-17"
+      }
+    ];
+     
+     
+      
+    const customerData = tableData.find((data)=>data.customer_id === customer_id);
+
+    let data = {customerData,
+                teamLeads :[{userName:"TD-123456" },
+                            {userName:"TD-234567" },
+                            {userName:"TD-345678" },
+                            {userName:"TD-456789" }
+                           ],
+                taskOwners :[
+                            {userName:"ED-123456" },
+                            {userName:"ED-234567" },
+                            {userName:"ED-345678" },
+                            {userName:"ED-456789" }
+                           ]
+                    }
+
+    // console.log(data);
+    return res.send(data);
+
+  }
+  catch(e){
+      console.error("error at getting customer data from admin/customers/:customer_id -----> ",e.message);
+      return res.status(500).send({message:"server error, please try again later "}); 
+  }
+
+});
+
+
 //------------------------------------------------------------------------------------------------
 
  //profile section
@@ -680,16 +1093,22 @@ route.get("/myProfile",Admin_auth,async (req, res)=>{
     }
 });
 
-route.put("/myProfile",async (req, res) =>{
+route.put("/myProfile",Admin_auth,async (req, res) =>{
 
   try{
     const data = req.body;
+    const { loggedInUser } = req.params;
 
-    if(data){
-       return res.send({message:"successfully updated the details"});
-    }else{
-       return res.status(400).send({message:"no data received"});
+    if(data && loggedInUser){
+
+       const update = await client.db("CRM").collection("accounts").updateOne(loggedInUser,{$set:data});
+       if(update){
+         return res.send({message:"successfully updated the details"});
+       }
+       return res.status(400).send({message:"Couldn't authorize the changes"});
+
     }
+       return res.status(400).send({message:"no data received"});
   }
   catch(e){
     console.error("error at updating profile data from admin/myProfile ------> ",e.message);
@@ -698,12 +1117,5 @@ route.put("/myProfile",async (req, res) =>{
 
 });
 
-route.post("/myProfile",async (req, res)=>{
-
-});
-
-route.delete("/myProfile",async (req, res) =>{
-
-});
 
 export const AdminRoutes = route;

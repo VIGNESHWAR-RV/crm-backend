@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cors from "cors";
-import { Admin_auth, teamLead_auth, Employee_auth,Check_auth} from "./middleware/auth.js"
+import {Check_auth} from "./middleware/auth.js"
 import nodemailer from 'nodemailer';
 import {EmployeeRoutes} from "./Routes/EmployeeRoutes/EmployeeRoutes.js";
 import {TeamLeadRoutes} from "./Routes/TeamLeadRoutes/TeamLeadRoutes.js";
@@ -43,11 +43,14 @@ app.post("/login", async (req, res) => {
  try{
     const loginUser = req.body;
 
+    // console.log(loginUser);
+
     const existingUser = await client.db("CRM")
                                      .collection("accounts")
                                      .findOne({ email: loginUser.email });
 
     if (!existingUser) {
+        // console.log("not existing user");
         return res.status(404).send({message:"invalid credentials"})
     }
 
@@ -78,7 +81,7 @@ app.post("/login", async (req, res) => {
         const token = jwt.sign({ id: existingUser._id }, process.env.SECRET_ADMIN_KEY);
         return res.send({ "role": role,name:existingUser.userName, "token": token });
     }
-    else if(role === "manager") {
+    else if(role === "team Lead") {
         const token = jwt.sign({ id: existingUser._id }, process.env.SECRET_MANAGER_KEY);
         return res.send({ "role": role,name:existingUser.userName, "token": token });
     }
@@ -118,7 +121,7 @@ app.post("/signup", async (req, res) => {
   try{
     const {firstName,lastName,email,company,password,confirm_password,terms_and_conditions} = req.body;
 
-    const regex = {name:"^[a-zA-Z]{2,}$",
+    const regex = {name:"^[a-zA-Z0-9 ]{2,}$",
                    password:"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$",
                 //    userName:"^[a-zA-Z0-9@#]{4,16}$",
                    company:`^[a-zA-Z0-9.'",@ ()-_]{1,}$`,
@@ -182,10 +185,11 @@ app.post("/signup", async (req, res) => {
 
     if(userName){
         const joinedDate = new Date(Date.now()).toDateString().split(" ").slice(1,4).join("/");
+
         //--- adding new user -------------------------------------
         const result = await client.db("CRM")
                                    .collection("accounts")
-                                   .insertOne({...newUser,role:"admin",userName,joinedDate});
+                                   .insertOne({...newUser,role:"admin",userName,joinedDate,notes:""});
     
         if(result){
            return  res.send(result);
@@ -261,9 +265,9 @@ app.post("/passwordReset",async(req,res)=>{
 
 })
 
-app.use("/employee",Employee_auth,EmployeeRoutes);
+app.use("/employee",EmployeeRoutes);
 
-app.use("/teamLead",teamLead_auth,TeamLeadRoutes);
+app.use("/teamLead",TeamLeadRoutes);
 
 app.use("/admin",AdminRoutes);
 
@@ -301,7 +305,7 @@ async function otpMailer(email,userName, res) {
     });
 }
 
-async function genPassword(password) {
+export async function genPassword(password) {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     return hashedPassword;
@@ -309,7 +313,7 @@ async function genPassword(password) {
 // console.log(Date.now());
 // console.log(Date.now().toString().slice(7,13));
 
-async function createUserName(newUser){
+export async function createUserName(newUser){
     let userName = `${newUser.firstName[0]}${newUser.lastName[0]}-${Date.now().toString().slice(7,13)}`;
     const isUserExist = await client.db("CRM")
                                     .collection("accounts")
